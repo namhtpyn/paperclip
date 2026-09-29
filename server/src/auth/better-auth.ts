@@ -1,6 +1,7 @@
 import type { Request, RequestHandler } from "express";
 import type { IncomingHttpHeaders } from "node:http";
 import { betterAuth, type Auth } from "better-auth";
+import { genericOAuth } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { toNodeHandler } from "better-auth/node";
 import type { Db } from "@paperclipai/db";
@@ -12,6 +13,7 @@ import {
 } from "@paperclipai/db";
 import type { Config } from "../config.js";
 import { resolvePaperclipInstanceId } from "../home-paths.js";
+import { resolveOidcEnvProvider } from "./oidc.js";
 import {
   workspaceLoginHandoffPlugin,
   type WorkspaceHandoffExpectedIdentity,
@@ -257,6 +259,24 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
     publicUrl,
   });
 
+  // Env-gated OIDC (PAPERCLIP_OIDC_*): when configured, register Better
+  // Auth's genericOAuth plugin so `/api/auth/sign-in/social/{providerId}`
+  // redirects to the IdP. Unset env = identical to upstream.
+  const oidcProvider = resolveOidcEnvProvider();
+  const oidcPlugin = oidcProvider
+    ? genericOAuth({
+        config: [
+          {
+            providerId: oidcProvider.providerId,
+            discoveryUrl: oidcProvider.discoveryUrl,
+            clientId: oidcProvider.clientId,
+            clientSecret: oidcProvider.clientSecret,
+            scopes: oidcProvider.scopes,
+          },
+        ],
+      })
+    : null;
+
   const authConfig = {
     baseURL: baseUrl,
     secret,
@@ -281,25 +301,38 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
       override: process.env.PAPERCLIP_AUTH_RATE_LIMIT_ENABLED,
     }),
     advanced: buildBetterAuthAdvancedOptions({ disableSecureCookies }),
+    ...(oidcProvider
+      ? {
+          accountLinking: {
+            enabled: true,
+            trustedProviders: [oidcProvider.providerId],
+          },
+        }
+      : {}),
     // Registered only for a managed workspace instance: the plugin is what makes
     // `Open workspace` password-independent, and a control-plane instance that
     // was never handed a workspace key must not expose the exchange at all.
-    ...(resolveWorkspaceHandoffIdentity(config)
+    ...(oidcPlugin || resolveWorkspaceHandoffIdentity(config)
       ? {
           plugins: [
-            workspaceLoginHandoffPlugin({
-              db,
-              // Re-resolved per exchange so a hot restart cannot keep validating
-              // against an origin the control plane has since republished.
-              resolveExpectedIdentity: () =>
-                resolveWorkspaceHandoffIdentity(config) ?? {
-                  key: null,
-                  instanceId: null,
-                  executionWorkspaceId: null,
-                  companyId: null,
-                  origin: null,
-                },
-            }),
+            ...(oidcPlugin ? [oidcPlugin] : []),
+            ...(resolveWorkspaceHandoffIdentity(config)
+              ? [
+                  workspaceLoginHandoffPlugin({
+                    db,
+                    // Re-resolved per exchange so a hot restart cannot keep validating
+                    // against an origin the control plane has since republished.
+                    resolveExpectedIdentity: () =>
+                      resolveWorkspaceHandoffIdentity(config) ?? {
+                        key: null,
+                        instanceId: null,
+                        executionWorkspaceId: null,
+                        companyId: null,
+                        origin: null,
+                      },
+                  }),
+                ]
+              : []),
           ],
         }
       : {}),

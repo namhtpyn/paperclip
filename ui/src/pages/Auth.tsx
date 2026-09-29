@@ -77,6 +77,38 @@ export function AuthPage() {
     },
   });
 
+  // Env-gated SSO (PAPERCLIP_OIDC_*): ask Better Auth for the IdP authorize
+  // URL, then send the browser there. The IdP redirects back to
+  // /api/auth/callback/{providerId}, which sets the session cookie and
+  // returns the browser to this page; the session query then routes onward.
+  const ssoMutation = useMutation({
+    mutationFn: async () => {
+      const provider = healthQuery.data?.ssoLogin;
+      if (!provider) throw new Error("SSO is not configured on this instance.");
+      const res = await fetch("/api/auth/sign-in/social", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          provider: provider.providerId,
+          callbackURL: nextPath,
+        }),
+      });
+      const payload = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
+      if (!res.ok || !payload?.url) {
+        throw new Error(payload?.error ?? `SSO sign-in failed (${res.status})`);
+      }
+      return payload.url;
+    },
+    onSuccess: (url) => {
+      setError(null);
+      window.location.assign(url);
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "SSO sign-in failed");
+    },
+  });
+
   const canSubmit =
     email.trim().length > 0 &&
     password.trim().length > 0 &&
@@ -203,6 +235,27 @@ export function AuthPage() {
                   : "Create Account"}
             </Button>
           </form>
+
+          {healthQuery.data?.ssoLogin && (
+            <>
+              <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="h-px flex-1 bg-border" aria-hidden="true" />
+                or
+                <span className="h-px flex-1 bg-border" aria-hidden="true" />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={ssoMutation.isPending}
+                onClick={() => ssoMutation.mutate()}
+              >
+                {ssoMutation.isPending
+                  ? "Redirecting…"
+                  : `Sign in with ${healthQuery.data.ssoLogin.providerName}`}
+              </Button>
+            </>
+          )}
 
           <div className="mt-5 text-sm text-muted-foreground">
             {mode === "sign_in" ? "Need an account?" : "Already have an account?"}{" "}
