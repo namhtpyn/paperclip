@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "slug": "gitea",
+  "name": "Gitea",
+  "description": "Give agents repository, issue, and pull request tools on a self-hosted Gitea instance.",
+  "categories": [
+    "developer"
+  ],
+  "featured": false,
+  "branding": {
+    "logoUrl": "/brands/apps/gitea.svg"
+  },
+  "urlPatterns": [
+    "https://gitea.com/*"
+  ],
+  "methods": [
+    {
+      "key": "api-token",
+      "transport": "rest_api",
+      "auth": "api_key",
+      "ownershipModes": [
+        "customer"
+      ],
+      "whenToUse": "Use credentials from your provider account.",
+      "defaults": {},
+      "guidanceMd": "Create a token with read/write scope on repository, issue, and pull request APIs. Scope it to the organizations or repositories agents should touch. The token is sent as an Authorization header to your instance's REST API.",
+      "riskTier": "S3",
+      "label": "Personal access token",
+      "purpose": "tool",
+      "tenantFields": [
+        {
+          "key": "baseUrl",
+          "label": "Instance base URL",
+          "type": "text",
+          "required": true,
+          "placeholder": "https://git.example.com",
+          "helperMd": "Root URL of your Gitea instance, no trailing slash."
+        }
+      ],
+      "credentialFields": [
+        {
+          "key": "apiKey",
+          "label": "Gitea access token",
+          "type": "password",
+          "required": true,
+          "placeholder": "Paste the access token",
+          "secret": true
+        }
+      ],
+      "keyPlacement": {
+        "location": "header",
+        "name": "Authorization",
+        "prefix": "token "
+      },
+      "consoleLinks": {
+        "settings": "https://docs.gitea.com/development/api-usage",
+        "docs": "https://docs.gitea.com/api"
+      }
+    },
+    {
+      "key": "mcp",
+      "transport": "mcp_remote",
+      "auth": "api_key",
+      "ownershipModes": [
+        "customer"
+      ],
+      "whenToUse": "Use the provider-hosted connection for the quickest setup.",
+      "defaults": {
+        "serverUrlTemplate": "https://{mcpHost}/mcp"
+      },
+      "guidanceMd": "Run the official gitea-mcp server (gitea.com/gitea/gitea-mcp) next to your Gitea instance, then point Paperclip at its HTTP endpoint. The access token authenticates each MCP call.",
+      "riskTier": "S3",
+      "label": "MCP server (self-hosted gitea-mcp)",
+      "purpose": "tool",
+      "tenantFields": [
+        {
+          "key": "mcpHost",
+          "label": "gitea-mcp host",
+          "type": "text",
+          "required": true,
+          "placeholder": "gitea-mcp.internal:8080",
+          "helperMd": "Host and port of your gitea-mcp HTTP endpoint."
+        }
+      ],
+      "credentialFields": [
+        {
+          "key": "apiKey",
+          "label": "Gitea access token",
+          "type": "password",
+          "required": true,
+          "placeholder": "Paste the access token",
+          "secret": true
+        }
+      ],
+      "keyPlacement": {
+        "location": "header",
+        "name": "Authorization",
+        "prefix": "Bearer "
+      },
+      "consoleLinks": {
+        "docs": "https://gitea.com/gitea/gitea-mcp"
+      }
+    }
+  ]
+}
