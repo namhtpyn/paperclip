@@ -27,6 +27,7 @@ import {
   type InspectDatabaseBackupHealthOptions,
 } from "../services/database-backup-health.js";
 import { instanceSettingsService } from "../services/instance-settings.js";
+import { resolveOidcEnvProvider, toPublicSsoLoginDescriptor } from "../auth/oidc.js";
 import { isManagedWorkspaceInstance, resolveWorkspaceReadiness } from "../services/workspace-readiness.js";
 import {
   resolveWorkspaceReadinessLocalToken,
@@ -240,6 +241,11 @@ export function healthRoutes(
     const healthStatus =
       startupRecovery.phase === "ready" ? "ok" : "starting";
     const cloud = getCloudHealthStatus(runtimeEnv);
+    // Env-gated OIDC (PAPERCLIP_OIDC_*): publish a secret-free descriptor so
+    // the anonymous sign-in page can render the SSO button. Omitted entirely
+    // when unset, keeping health responses byte-identical to upstream.
+    const oidcProvider = resolveOidcEnvProvider(runtimeEnv);
+    const ssoLogin = oidcProvider ? toPublicSsoLoginDescriptor(oidcProvider) : undefined;
     // Operator-hidden settings ride every response (like `cloud`): the list
     // holds UI surface names only, and the settings nav needs it before any
     // fuller-detail fetch. Omitted entirely when nothing is hidden, so
@@ -280,6 +286,7 @@ export function healthRoutes(
               commit,
               serverInfo,
               ...(cloud ? { cloud } : {}),
+              ...(ssoLogin ? { ssoLogin } : {}),
               ...(hiddenSettings.length ? { hiddenSettings } : {}),
             }
           : {
@@ -287,6 +294,7 @@ export function healthRoutes(
               deploymentMode: opts.deploymentMode,
               commit,
               ...(cloud ? { cloud } : {}),
+              ...(ssoLogin ? { ssoLogin } : {}),
               ...(hiddenSettings.length ? { hiddenSettings } : {}),
             },
       );
@@ -396,6 +404,7 @@ export function healthRoutes(
         commit,
         bootstrapStatus,
         bootstrapInviteActive,
+        ...(ssoLogin ? { ssoLogin } : {}),
         ...(redactedDatabaseBackup ? { databaseBackup: redactedDatabaseBackup } : {}),
         ...(redactedWarnings ? { warnings: redactedWarnings } : {}),
         ...(devServer ? { devServer } : {}),
@@ -426,6 +435,7 @@ export function healthRoutes(
       serverInfo,
       startupRecovery,
       nativeRecovery,
+      ...(ssoLogin ? { ssoLogin } : {}),
       ...(databaseBackup ? { databaseBackup } : {}),
       ...(warnings ? { warnings } : {}),
       ...(devServer ? { devServer } : {}),

@@ -23,6 +23,11 @@ export type CloudInstanceHealthStatus = {
   cloudBaseUrl: string | null;
 };
 
+export type SsoLoginStatus = {
+  providerId: string;
+  providerName: string;
+};
+
 export type HealthStatus = {
   status: "ok";
   version?: string;
@@ -40,6 +45,11 @@ export type HealthStatus = {
   serverInfo?: ServerInfoSnapshot;
   devServer?: DevServerHealthStatus;
   cloud?: CloudInstanceHealthStatus;
+  /**
+   * Env-gated SSO/OIDC sign-in descriptor (PAPERCLIP_OIDC_*). Present only
+   * when the operator configured an OIDC provider; carries no secrets.
+   */
+  ssoLogin?: SsoLoginStatus;
   /**
    * Settings surfaces hidden by the hosting operator (keys from the shared
    * settings-visibility registry). Absent when nothing is hidden.
