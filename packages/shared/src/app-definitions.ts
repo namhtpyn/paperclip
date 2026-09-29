@@ -29,6 +29,7 @@ export const CONNECTABLE_APP_SLUGS = new Set([
   "google-people",
   "google-workspace-search",
   "github",
+  "gitea",
   "discord",
   "microsoft-teams",
   "telegram",

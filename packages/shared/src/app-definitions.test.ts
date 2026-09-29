@@ -719,7 +719,7 @@ describe("AppDefinition catalog", () => {
       "ticktick",
       "xero",
     ]);
-    expect(APP_STORE_DEFINITIONS).toHaveLength(56);
+    expect(APP_STORE_DEFINITIONS).toHaveLength(57);
     const connectableSlugs = new Set(
       CONNECTABLE_APP_DEFINITIONS.map((entry) => entry.slug),
     );
@@ -942,6 +942,8 @@ describe("AppDefinition catalog", () => {
     ).sort();
     expect(required).toEqual([
       "clickhouse:mcp-oauth:serviceId",
+      "gitea:api-token:baseUrl",
+      "gitea:mcp:mcpHost",
       "shopify:storefront-mcp:storeDomain",
       "shopify:ucp-commerce:storeDomain",
       "supabase:mcp-api-key:projectRef",

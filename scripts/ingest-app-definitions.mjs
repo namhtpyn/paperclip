@@ -256,6 +256,83 @@ const apps = [
     { redirectConstraints: "https-or-loopback-http" },
   ],
   [
+    "gitea",
+    "Gitea",
+    "Give agents repository, issue, and pull request tools on a self-hosted Gitea instance.",
+    "developer",
+    "gitea.com",
+    ["https://gitea.com/*"],
+    [
+      method(
+        "api-token",
+        "rest_api",
+        "api_key",
+        {},
+        "S3",
+        "Create a token with read/write scope on repository, issue, and pull request APIs. Scope it to the organizations or repositories agents should touch. The token is sent as an Authorization header to your instance's REST API.",
+        {
+          label: "Personal access token",
+          purpose: "tool",
+          tenantFields: [
+            {
+              key: "baseUrl",
+              label: "Instance base URL",
+              type: "text",
+              required: true,
+              placeholder: "https://git.example.com",
+              helperMd: "Root URL of your Gitea instance, no trailing slash.",
+            },
+          ],
+          credentialFields: [
+            field("apiKey", "Gitea access token", "Paste the access token"),
+          ],
+          keyPlacement: {
+            location: "header",
+            name: "Authorization",
+            prefix: "token ",
+          },
+          consoleLinks: {
+            settings: "https://docs.gitea.com/development/api-usage",
+            docs: "https://docs.gitea.com/api",
+          },
+        },
+      ),
+      method(
+        "mcp",
+        "mcp_remote",
+        "api_key",
+        { serverUrlTemplate: "https://{mcpHost}/mcp" },
+        "S3",
+        "Run the official gitea-mcp server (gitea.com/gitea/gitea-mcp) next to your Gitea instance, then point Paperclip at its HTTP endpoint. The access token authenticates each MCP call.",
+        {
+          label: "MCP server (self-hosted gitea-mcp)",
+          purpose: "tool",
+          tenantFields: [
+            {
+              key: "mcpHost",
+              label: "gitea-mcp host",
+              type: "text",
+              required: true,
+              placeholder: "gitea-mcp.internal:8080",
+              helperMd: "Host and port of your gitea-mcp HTTP endpoint.",
+            },
+          ],
+          credentialFields: [
+            field("apiKey", "Gitea access token", "Paste the access token"),
+          ],
+          keyPlacement: {
+            location: "header",
+            name: "Authorization",
+            prefix: "Bearer ",
+          },
+          consoleLinks: {
+            docs: "https://gitea.com/gitea/gitea-mcp",
+          },
+        },
+      ),
+    ],
+  ],
+  [
     "github",
     "GitHub",
     "Give agents repository tools or let people work with an agent from GitHub issues and pull requests.",
