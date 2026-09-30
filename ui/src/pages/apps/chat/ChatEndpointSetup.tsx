@@ -56,6 +56,7 @@ const providerNames: Record<ChatProvider, string> = {
   slack: "Slack",
   github: "GitHub",
   discord: "Discord",
+  matrix: "Matrix",
   "microsoft-teams": "Microsoft Teams",
   telegram: "Telegram",
   "imessage-photon": "iMessage Photon",
@@ -1008,6 +1009,52 @@ settings:
       </div>
     );
   }
+  if (provider === "matrix")
+    return (
+      <div className="space-y-5">
+        <div>
+          <h1 className="text-xl font-bold">Connect {agentName} to Matrix</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {repairing
+              ? "Reconnect verifies the same Matrix account credentials without changing room memberships. Leave fields blank to reuse saved credentials."
+              : "Create one dedicated Matrix account for this Paperclip agent, then paste its homeserver URL, access token, and user ID."}
+          </p>
+        </div>
+        <ol className="list-decimal space-y-2 pl-5 text-sm">
+          <li>
+            Register a dedicated account for the agent on your homeserver
+            (Element or any client).
+          </li>
+          <li>
+            Reveal its access token (Element: profile → All settings → Help &
+            About, or use <code>curl</code> with the login API).
+          </li>
+          <li>
+            Invite the agent to a room, or DM it directly — it joins and
+            answers over its own sync connection, so no public webhook is
+            needed.
+          </li>
+        </ol>
+        {field("homeserverUrl", "Homeserver URL", "text")}
+        {field("accessToken", "Bot access token")}
+        {field("userId", "Bot user ID", "text")}
+        <Button
+          disabled={
+            (!repairing &&
+              (!credentials.homeserverUrl ||
+                !credentials.accessToken ||
+                !credentials.userId)) ||
+            pending
+          }
+          onClick={() =>
+            onAction(repairing ? "reconnect" : "configure", credentials)
+          }
+        >
+          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {repairing ? "Reconnect Matrix account" : "Connect Matrix account"}
+        </Button>
+      </div>
+    );
   if (provider === "telegram")
     return (
       <div className="space-y-5">

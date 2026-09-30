@@ -521,6 +521,12 @@
       "provider": "Gitea",
       "catalogVisible": true,
       "localAsset": "/brands/apps/gitea.svg"
+    },
+    {
+      "slug": "matrix",
+      "provider": "Matrix",
+      "catalogVisible": true,
+      "localAsset": "/brands/apps/matrix.svg"
     }
   ]
 }

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "slug": "matrix",
+  "name": "Matrix",
+  "description": "Let people start and continue Paperclip work from Matrix rooms and direct messages.",
+  "categories": [
+    "communication"
+  ],
+  "featured": false,
+  "branding": {
+    "logoUrl": "/brands/apps/matrix.svg"
+  },
+  "urlPatterns": [
+    "https://matrix.to/*",
+    "https://matrix.org/*"
+  ],
+  "methods": [
+    {
+      "key": "chat-agent",
+      "label": "Chat with an agent",
+      "purpose": "channel",
+      "provider": "matrix",
+      "transport": "chat_sdk",
+      "auth": "api_key",
+      "ownershipModes": [
+        "customer"
+      ],
+      "whenToUse": "Let people in undefined start and continue work with one Paperclip agent.",
+      "credentialFields": [
+        {
+          "key": "homeserverUrl",
+          "label": "Homeserver URL",
+          "type": "text",
+          "required": true,
+          "placeholder": "https://matrix.example.com",
+          "secret": false
+        },
+        {
+          "key": "accessToken",
+          "label": "Bot access token",
+          "type": "password",
+          "required": true,
+          "placeholder": "syt_...",
+          "secret": true
+        },
+        {
+          "key": "userId",
+          "label": "Bot user ID",
+          "type": "text",
+          "required": true,
+          "placeholder": "@agent:example.com",
+          "secret": false
+        }
+      ],
+      "guidanceMd": "Create one dedicated Matrix account for the agent on your homeserver, then paste its homeserver URL, access token, and user ID. The agent joins rooms it is invited to and answers mentions and direct messages over its own sync connection; no public webhook is needed.",
+      "consoleLinks": {
+        "docs": "https://matrix.org/docs/matrix-concepts/"
+      },
+      "riskTier": "S3",
+      "requiredResourceFilters": [
+        "chat",
+        "room"
+      ]
+    }
+  ]
+}

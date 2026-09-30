@@ -508,5 +508,9 @@ export function parseChatProviderLifecycle(
       return parseTeamsLifecycle(input);
     case "telegram":
       return parseTelegramLifecycle(input);
+    case "matrix":
+      // Matrix sync owns membership; invite auto-join is configured on the
+      // adapter, and lifecycle is reconciled from the homeserver state.
+      return [];
   }
 }

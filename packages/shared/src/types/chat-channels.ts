@@ -3,6 +3,7 @@ export const CHAT_PROVIDERS = [
   "slack",
   "github",
   "discord",
+  "matrix",
   "microsoft-teams",
   "telegram",
   "agentmail",
