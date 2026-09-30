@@ -428,6 +428,7 @@ const PROVIDER_LABELS: Record<ChatProvider, string> = {
   slack: "Slack",
   github: "GitHub",
   discord: "Discord",
+  matrix: "Matrix",
   "microsoft-teams": "Microsoft Teams",
   telegram: "Telegram",
 };
@@ -692,6 +693,21 @@ const CAPABILITIES: Record<ChatProvider, ChatAdapterCapabilities> = {
     ephemeralMessages: false,
     proactiveDirectMessages: false,
   },
+  matrix: {
+    threads: true,
+    directMessages: true,
+    nativeStreaming: false,
+    messageEdits: true,
+    messageDeletes: true,
+    reactions: true,
+    files: true,
+    cards: false,
+    actions: false,
+    modals: false,
+    slashCommands: false,
+    ephemeralMessages: false,
+    proactiveDirectMessages: false,
+  },
   discord: {
     threads: true,
     directMessages: true,
@@ -758,6 +774,7 @@ const REQUIRED_CREDENTIALS: Record<
   agentmail: [],
   slack: ["botToken", "signingSecret"],
   discord: ["botToken", "applicationId", "guildId"],
+  matrix: ["homeserverUrl", "accessToken", "userId"],
   "microsoft-teams": ["clientId", "tenantId", "clientSecret"],
   telegram: ["botToken"],
 };
@@ -819,6 +836,7 @@ const SUPPLIED_CREDENTIAL_KEYS: Record<ChatProvider, readonly string[]> = {
   slack: ["botToken", "signingSecret"],
   github: ["appId", "privateKey"],
   discord: ["botToken", "applicationId", "guildId"],
+  matrix: ["homeserverUrl", "accessToken", "userId"],
   "microsoft-teams": ["clientId", "tenantId", "clientSecret"],
   telegram: ["botToken"],
 };
@@ -854,7 +872,7 @@ const PUBLICATION_ENDPOINT_CONCURRENCY = 4;
 const CREDENTIAL_MUTATION_LEASE_WAIT_MS = 10_000;
 const CREDENTIAL_MUTATION_LEASE_POLL_MS = 25;
 const DISCORD_GATEWAY_LEASE_KEY = "discord_gateway_runtime";
-function leasedChatProvider(provider: string): boolean { return provider === "discord" || provider === "imessage-photon"; }
+function leasedChatProvider(provider: string): boolean { return provider === "discord" || provider === "imessage-photon" || provider === "matrix"; }
 const DISCORD_GATEWAY_LEASE_TTL_MS = 15_000;
 const DISCORD_GATEWAY_LEASE_WAIT_MS = 20_000;
 const DISCORD_GATEWAY_LEASE_POLL_MS = 100;
@@ -1558,7 +1576,7 @@ type DiscordGatewayOwnership = {
   context: RuntimeContext;
   endpointId: string;
   expiresAt: Date;
-  leaseKey: typeof DISCORD_GATEWAY_LEASE_KEY | "photon_receiver_runtime";
+  leaseKey: typeof DISCORD_GATEWAY_LEASE_KEY | "photon_receiver_runtime" | "matrix_sync_runtime";
   renewTimer: ReturnType<typeof setInterval> | null;
   renewal: Promise<void> | null;
   stopPromise: Promise<void> | null;
@@ -2752,6 +2770,14 @@ function providerSetupState(
           : "https://t.me/BotFather",
         webhookUrl,
       } as const;
+    case "matrix":
+      // Matrix receives over its own sync connection, not a webhook; the
+      // homeserver URL comes from the endpoint credentials.
+      return {
+        step,
+        providerUrl: endpoint.providerAccountId ?? null,
+        testStartedAt: endpoint.setup.testStartedAt,
+      } as const;
   }
 }
 
@@ -3320,7 +3346,7 @@ export function chatChannelService(db: Db, options: ChatChannelServiceOptions) {
     context: RuntimeContext,
     waitForOwnership: boolean,
   ): Promise<DiscordGatewayOwnership | null> {
-    const receiverLeaseKey = endpoint.provider === "imessage-photon" ? "photon_receiver_runtime" : DISCORD_GATEWAY_LEASE_KEY;
+    const receiverLeaseKey = endpoint.provider === "imessage-photon" ? "photon_receiver_runtime" : endpoint.provider === "matrix" ? "matrix_sync_runtime" : DISCORD_GATEWAY_LEASE_KEY;
     const local = discordGatewayOwnerships.get(endpoint.id);
     if (
       local &&
@@ -7631,6 +7657,16 @@ export function chatChannelService(db: Db, options: ChatChannelServiceOptions) {
           applicationId: credentials.applicationId,
           botToken: credentials.botToken,
           guildId: credentials.guildId,
+        },
+      };
+    if (endpoint.provider === "matrix")
+      return {
+        provider: "matrix",
+        userName,
+        credentials: {
+          homeserverUrl: credentials.homeserverUrl,
+          accessToken: credentials.accessToken,
+          userId: credentials.userId,
         },
       };
     if (endpoint.provider === "microsoft-teams")

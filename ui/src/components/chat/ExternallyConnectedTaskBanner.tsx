@@ -35,6 +35,7 @@ const providerNames: Record<ChatProvider, string> = {
   slack: "Slack",
   github: "GitHub",
   discord: "Discord",
+  matrix: "Matrix",
   "microsoft-teams": "Microsoft Teams",
   telegram: "Telegram",
   agentmail: "AgentMail",

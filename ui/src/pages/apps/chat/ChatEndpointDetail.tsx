@@ -64,6 +64,7 @@ const providerNames: Record<ChatProvider, string> = {
   slack: "Slack",
   github: "GitHub",
   discord: "Discord",
+  matrix: "Matrix",
   "microsoft-teams": "Microsoft Teams",
   telegram: "Telegram",
   "imessage-photon": "iMessage Photon",
@@ -91,6 +92,12 @@ const providerLifecycleGuidance: Record<
       "Reconnect verifies this same Discord application and server installation. It does not add or remove the bot from the server.",
     remove:
       "Paperclip archives the endpoint, stops its Paperclip Gateway connection, and retires its saved bot token. It does not uninstall the bot: the bot remains in the Discord server, and the application remains in the Developer Portal, until you remove them there.",
+  },
+  matrix: {
+    reconnect:
+      "Reconnect verifies or replaces the access token for this same Matrix account. It does not change room memberships or leave rooms.",
+    remove:
+      "Paperclip archives the endpoint, stops its sync connection, and retires its saved access token. It does not leave rooms or deactivate the Matrix account: the account remains joined until you remove it in Matrix.",
   },
   "microsoft-teams": {
     reconnect:

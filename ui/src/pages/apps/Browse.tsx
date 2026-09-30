@@ -552,6 +552,7 @@ export function Browse({ renderAccountDetails = (connection) => connection.conne
           slack: "Slack",
           github: "GitHub",
           discord: "Discord",
+          matrix: "Matrix",
           "microsoft-teams": "Microsoft Teams",
           telegram: "Telegram",
           "imessage-photon": "iMessage Photon",

@@ -15,6 +15,10 @@ import {
   type DiscordAdapterConfig,
 } from "@chat-adapter/discord";
 import {
+  createMatrixAdapter,
+  type MatrixAdapterConfig,
+} from "@beeper/chat-adapter-matrix";
+import {
   createSlackAdapter,
   type SlackAdapterConfig,
 } from "@chat-adapter/slack";
@@ -136,8 +140,8 @@ const DISCORD_GATEWAY_HEALTHY_SESSION_MS = 60_000;
 
 /** Public Paperclip provider ids. The Teams SDK name remains an internal detail. */
 export type ChatSdkProvider =
-  "slack" | "github" | "discord" | "microsoft-teams" | "telegram" | "imessage-photon";
-type ChatSdkAdapterKey = "slack" | "github" | "discord" | "teams" | "telegram" | "imessage-photon";
+  "slack" | "github" | "discord" | "matrix" | "microsoft-teams" | "telegram" | "imessage-photon";
+type ChatSdkAdapterKey = "slack" | "github" | "discord" | "matrix" | "teams" | "telegram" | "imessage-photon";
 
 interface ProviderConfigBase {
   /** Agent-derived native bot display/mention name. */
@@ -185,6 +189,15 @@ export interface ResolvedDiscordChatConfig extends ProviderConfigBase {
   };
 }
 
+export interface ResolvedMatrixChatConfig extends ProviderConfigBase {
+  provider: "matrix";
+  credentials: {
+    homeserverUrl: string;
+    accessToken: string;
+    userId: string;
+  };
+}
+
 export interface ResolvedMicrosoftTeamsChatConfig extends ProviderConfigBase {
   provider: "microsoft-teams";
   credentials: {
@@ -216,6 +229,7 @@ export type ResolvedChatSdkProviderConfig =
   | ResolvedSlackChatConfig
   | ResolvedGitHubChatConfig
   | ResolvedDiscordChatConfig
+  | ResolvedMatrixChatConfig
   | ResolvedMicrosoftTeamsChatConfig
   | ResolvedTelegramChatConfig;
 
@@ -1467,6 +1481,19 @@ function createProviderAdapter(
         userName: config.userName,
       };
       return createDiscordAdapter(adapterConfig);
+    }
+    case "matrix": {
+      const adapterConfig: MatrixAdapterConfig = {
+        auth: {
+          type: "accessToken",
+          accessToken: config.credentials.accessToken,
+          userID: config.credentials.userId,
+        },
+        baseURL: config.credentials.homeserverUrl,
+        logger: resolvedLogger,
+        userName: config.userName,
+      };
+      return createMatrixAdapter(adapterConfig);
     }
     case "microsoft-teams": {
       const adapterConfig: TeamsAdapterConfig = {

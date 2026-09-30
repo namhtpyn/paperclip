@@ -520,6 +520,35 @@ const apps = [
     ),
   ],
   [
+    "matrix",
+    "Matrix",
+    "Let people start and continue Paperclip work from Matrix rooms and direct messages.",
+    "communication",
+    "matrix.org",
+    ["https://matrix.to/*", "https://matrix.org/*"],
+    channelMethod(
+      "matrix",
+      [
+        {
+          ...field("homeserverUrl", "Homeserver URL", "https://matrix.example.com"),
+          type: "text",
+          secret: false,
+        },
+        field("accessToken", "Bot access token", "syt_..."),
+        {
+          ...field("userId", "Bot user ID", "@agent:example.com"),
+          type: "text",
+          secret: false,
+        },
+      ],
+      ["chat", "room"],
+      "Create one dedicated Matrix account for the agent on your homeserver, then paste its homeserver URL, access token, and user ID. The agent joins rooms it is invited to and answers mentions and direct messages over its own sync connection; no public webhook is needed.",
+      {
+        docs: "https://matrix.org/docs/matrix-concepts/",
+      },
+    ),
+  ],
+  [
     "discord",
     "Discord",
     "Let people start and continue Paperclip work with an agent from Discord.",

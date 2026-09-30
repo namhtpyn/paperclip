@@ -31,6 +31,7 @@ export const CONNECTABLE_APP_SLUGS = new Set([
   "github",
   "gitea",
   "discord",
+  "matrix",
   "microsoft-teams",
   "telegram",
   "imessage-photon",
